@@ -1,0 +1,26 @@
+$sourceDir = "/gpfs/data1/cmongp1/GEOGLAM/Input/intermed/chirps/global/"
+$remoteHost = "kotcharlakotaa@gsapp17"
+$password = "SilverNeuron51"
+$localDir = "D:/Unistra/Malawi/AGROECO/Precipitation/"
+$shapeFile = "D:/Unistra/Malawi/shapefile/mwi_admbnda_adm0_nso_hotosm_20230405.shp"
+
+for ($regex_int = 2021 ; $regex_int -le 2023 ; $regex_int++)
+{
+$regex = [string]$regex_int 
+
+
+
+$files = & plink.exe -pw $password -no-antispoof $remoteHost "ls -1 $sourceDir" | ForEach-Object {$_.Trim()}
+$matchingFiles = $files |Where-Object {$_ -match "0\."+$regex}
+$matchingFiles 
+
+   foreach($file in $matchingFiles) {
+	   $remoteFile = "$sourceDir$file"
+	   $localFile = "$localDir$file"
+	   & pscp.exe -r -pw $password "$remoteHost`:$remoteFile" "$localFile"
+	# gdalwarp -cutline $shapeFile -crop_to_cutline -overwrite $localFile $localFile
+	C:/Users/kashy/anaconda3/envs/geo_env/python.exe -c "import cluster_clip;cluster_clip.to_region('$localFile',shapefile = '$shapeFile') " 
+
+
+}
+}
